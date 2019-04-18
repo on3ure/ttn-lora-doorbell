@@ -1,0 +1,3 @@
+requires 'Config::YAML';
+requires 'Mojolicious::Lite';
+requires 'perl', 'v5.10.0';
