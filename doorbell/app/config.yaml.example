@@ -1,0 +1,15 @@
+---
+securityheaders:
+  Access-Control-Allow-Headers: 'Content-Type, X-CSRF-Token'
+  Access-Control-Allow-Methods: 'GET, OPTIONS, POST, DELETE, PUT'
+  Access-Control-Allow-Origin: '*'
+  Access-Control-Max-Age: 1728000
+  Content-Security-Policy: "default-src https: data: 'unsafe-inline' 'unsafe-eval'"
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  X-Xss-Protection: 1; mode=block
+debug: false
+tokens:
+  something: thethingsnetwork
+pb: 'somepbtoken'

@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: doorbell
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ttn-lora-doorbell-doorbell-ip	
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    certmanager.k8s.io/acme-http01-edit-in-place: "true"
+  labels:
+    app: doorbell
+spec:
+  backend:
+    serviceName: doorbell-backend
+    servicePort: 80
+  tls:
+  - secretName:  ttn-lora-doorbell-tls
+    hosts:
+    - doorbell.on3ure.be
+#---
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: doorbell-ipv6
+#  annotations:
+#    kubernetes.io/ingress.global-static-ip-name: ttn-lora-doorbell-site-doorbell-ipv6
+#  labels:
+#    app: doorbell-ipv6
+#spec:
+#  backend:
+#    serviceName: doorbell-backend
+#    servicePort: 80
+#  tls:
+#  - secretName:  ttn-lora-doorbell-site-doorbell-tls
+#    hosts:
+#    - almita.be
+#    - www.almita.be

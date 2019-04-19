@@ -1,0 +1,62 @@
+apiVersion: cloud.google.com/v1beta1
+kind: BackendConfig
+metadata:
+  name: doorbell-backend-config
+spec:
+  cdn:
+    enabled: true
+    cachePolicy:
+      includeHost: true
+      includeProtocol: true
+      includeQueryString: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doorbell-backend
+  labels:
+    app: doorbell
+  annotations:
+    beta.cloud.google.com/backend-config: '{"ports": {"80":"doorbell-backend-config"}}'
+spec:
+  type: NodePort
+  selector:
+    app: doorbell
+    tier: web
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: doorbell
+  labels:
+    app: doorbell
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: doorbell
+        tier: web
+    spec:
+      containers:
+      - name: doorbell
+        image: gcr.io/customer-mol/ttn-lora-doorbell/doorbell-image:latest
+        imagePullPolicy: "Always"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 15
+        ports:
+        - containerPort: 80
+        env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
