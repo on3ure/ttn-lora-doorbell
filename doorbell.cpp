@@ -3,8 +3,8 @@
 #include <Adafruit_VS1053.h>
 #include <SD.h>
 
-const char *appEui = "70B3D57ED001AF10";
-const char *appKey = "65CDF62C64053954E6A939CC71AEB0E7";
+const char *appEui = "";
+const char *appKey = "";
 
 volatile bool TTN_BUTTON_PRESSED = false;
 char *filename = "HOME.MP3";
