@@ -9,7 +9,7 @@ const char *appKey = "";
 volatile bool TTN_BUTTON_PRESSED = false;
 char *filename = "HOME.MP3";
 
-int count = 0;
+unsigned long startTime;
 
 #define loraSerial Serial1
 #define debugSerial Serial
@@ -18,6 +18,7 @@ int count = 0;
 #define SETUP 1
 #define BUTTON 2
 #define INTERVAL 3
+#define FOUR_HRS 14400000UL
 #define AWAY 4
 #define HOME 5
 #define CLK 13       // SPI Clock, shared with SD card
@@ -53,6 +54,8 @@ void setup() {
   debugSerial.println("-- TTN: JOIN");
   ttn.join(appEui, appKey);
 
+  startTime = millis();
+
   debugSerial.println("Adafruit VS1053 Simple Test");
 
   if (! musicPlayer.begin()) { // initialise the music player
@@ -73,10 +76,7 @@ void setup() {
   musicPlayer.startPlayingFile("/READY.MP3");
 }
 
-void loop() {
-  count++;
-  delay(100);
-  
+void loop() { 
   if ((musicPlayer.GPIO_digitalRead(BUTTON)) == HIGH && (TTN_BUTTON_PRESSED == false)) {    
         TTN_BUTTON_PRESSED = true;         
   }
@@ -88,16 +88,18 @@ void loop() {
   if (TTN_BUTTON_PRESSED == true) {
     debugSerial.println("-- BUTTON: PRESSED ");
     debugSerial.print("-- SEND: BUTTON");
-  
-    //musicPlayer.startPlayingFile("/HOME.MP3");
-    musicPlayer.startPlayingFile(filename);
-  
-    sendData(BUTTON);
+    
+    if (sendData(BUTTON) == true) {
+      musicPlayer.startPlayingFile(filename);
+    } else {
+      musicPlayer.startPlayingFile("ERR.MP3");
+    }
+    // delay for multiple presses or repeated lora sends
     delay(6000);   
   }
 
-  if (count > (10 * 14400)) {
-    count = 0;
+  if (millis() - startTime > FOUR_HRS) {
+    startTime = millis();
     debugSerial.println("-- INTERVAL");
     ttn.poll();
     sendData(INTERVAL);
@@ -109,12 +111,13 @@ void wake() {
 }
 
 void sleep() {
+  debugSerial.println(F("-- SLEEP"));
 }
 
 // Send LORA data
-void sendData(uint8_t port) {
+bool sendData(uint8_t port) {
   // Wake RN2483
-  //ttn.wake();
+  ttn.wake();
 
   ttn.showStatus();
 
@@ -126,14 +129,14 @@ void sendData(uint8_t port) {
   payload[0] = bytes[1];
   payload[1] = bytes[0];
  
-  ttn.sendBytes(payload, sizeof(payload), port);
+  return ttn.sendBytes(payload, sizeof(payload), port);
 
   // Set RN2483 to sleep mode
-  //ttn.sleep(36600000);
+  ttn.sleep(36600000);
 
   // This one is not optionnal, remove it
   // and say bye bye to RN2983 sleep mode
-  //delay(50);
+  delay(50);
 }
 
 // Receive Lora Hook
