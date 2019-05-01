@@ -7,6 +7,7 @@ use Mojolicious::Lite;
 use Config::YAML;
 use Data::Dumper;
 use WWW::PushBullet;
+use Mojo::UserAgent;
 
 # YAML based config
 my $config = Config::YAML->new( config => "config.yaml" );
@@ -16,6 +17,9 @@ my $mojoconfig = plugin Config => { file => 'mojo.conf' };
 
 # PushBullet Config
 my $pb = WWW::PushBullet->new( { apikey => $config->{pb} } );
+
+# UserAgent
+my $ua  = Mojo::UserAgent->new;
 
 # log add papertrail later
 helper log => sub {
@@ -138,8 +142,17 @@ post '/ttn/:token' => sub {
 
     #$self->log( Dumper $data);
 
+    if ( $data->{payload_fields}->{event} eq 'interval' ) {
+        $self->log( "Interval: "
+              . $data->{dev_id}
+              . " Battery: "
+              . $data->{payload_fields}->{battery} );
+    }
     if ( $data->{payload_fields}->{event} eq 'button' ) {
-        $self->log( "Button Pressed: " . $data->{dev_id} );
+        $self->log( "Button Pressed: "
+              . $data->{dev_id}
+              . " Battery: "
+              . $data->{payload_fields}->{battery} );
         my $body = $data->{dev_id};
         $body =~ s/_/ /g;
         $body =~ s/([\w']+)/\u\L$1/g;
